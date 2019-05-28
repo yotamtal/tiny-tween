@@ -47,7 +47,7 @@ const tweenOptions = {
     yoyo: true, // Play forward and then reverse to inital value
     autostart: false,
     ease: 'easeInOutCubic', // Easing effect, default is Linear
-    onUpdate: function(val){},
+    onProgress: function(values){},
     onComplete: function(){},
 };
 
