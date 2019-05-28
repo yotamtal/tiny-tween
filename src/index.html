@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Empty project</title>
+        <title>Tiny Tween Example</title>
         <meta charset="utf-8">
     </head>
     <body>
-        <div id="app"></div>
-        <script src="TinyTween.js"></script>
+        <div id="app" style="display: flex; flex-direction: column; justify-content: center; align-items: center">
+            <input id="example-range" type="range" min="0" max="100" value="0"/>
+            </br>
+            Value: <span id="example"></span>
+            </br>
+            Loops: <span id="loops">0</span>
+        </div>
+        <script src="index.js"></script>
     </body>
 </html>

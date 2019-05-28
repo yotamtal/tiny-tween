@@ -2,6 +2,8 @@
 
 Tiny Tween - A JS Component for tweening values easily
 
+![Tiny Tween Demo](tiny-tween-demo.gif)
+
 ## Installation
 
 Using package managers
@@ -37,10 +39,12 @@ const tweenOptions = {
     from: 0,
     to: 100,
     duration: 2000, // In Milliseconds
-    loop: true,  // In Loop tween
+    loop: true,  // Loop tween
     yoyo: true, // Play forward and then reverse to inital value
     autostart: false,
-    ease: 'easeInOutCubic' // Easing effect, default is Linear
+    ease: 'easeInOutCubic', // Easing effect, default is Linear
+    onUpdate: function(val){},
+    onComplete: function(){},
 };
 
 // ES6 Usage
