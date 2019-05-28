@@ -1,161 +1,192 @@
 /*****
  * @author Yotam Tal
  * @description JS Component for tweening values easily
- * @param options 
- *  {from, to, duration, ease, loop, yoyo, onUpdate, onComplete} - 
+ * @param {object} options 
+ *  {from, to, duration, ease, loop, yoyo, onProgress, onComplete} - 
  *  Gets all the options for this tween
  */
-
 import EasingFunctions from './Easing'
+
+const root = typeof window !== 'undefined' ? window : global;
+const interval = 1000 / 60;
+
+let scheduleFunction =
+  root.requestAnimationFrame ||
+  root.webkitRequestAnimationFrame ||
+  root.oRequestAnimationFrame ||
+  root.msRequestAnimationFrame ||
+  (root.mozCancelRequestAnimationFrame && root.mozRequestAnimationFrame) ||
+  setTimeout;
+
+let setNestedValue = (obj, path, value) => {
+    const pList = path.split('.');
+    const key = pList.pop();
+    const pointer = pList.reduce((accumulator, currentValue) => {
+      if (accumulator[currentValue] === undefined) accumulator[currentValue] = {};
+      return accumulator[currentValue];
+    }, obj);
+    pointer[key] = value;
+    return obj;
+}
+
 class TinyTween {
+    _timestamp = Date.now()
+    _elapsed = 0
+    _progress = 0
+    _playing = 0
+    _currentValues = {}
+
     constructor(options){
-        const { checkEase, checkFunc, checkNum, checkBool } = this;
+        const { __checkEase, __checkFunc, __checkObj, __checkNum, __checkBool } = this;
 
-        this._from = checkNum(options.from)
-        this._to = checkNum(options.to)
+        this._from = __checkObj(options.from)
+        this._to = __checkObj(options.to)
 
-        this._duration = checkNum(options.duration)
-        this._ease = checkEase(options.ease) || EasingFunctions['linear']
+        this._duration = __checkNum(options.duration)
+        this._ease = __checkEase(options.ease) || EasingFunctions['linear']
 
-        this._onComplete = checkFunc(options.onComplete)
-        this._onUpdate = checkFunc(options.onUpdate)
+        this._onComplete = __checkFunc(options.onComplete)
+        this._onProgress = __checkFunc(options.onProgress)
 
-        this._loop = checkBool(options.loop)
-        this._yoyo = checkBool(options.yoyo)
-        this._reverse = checkBool(options.reverse)
-
-        this._timestamp = Date.now()
-        this._elapsed = 0
-        this._progress = 0
+        this._loop = __checkBool(options.loop)
+        this._yoyo = __checkBool(options.yoyo)
+        this._reverse = __checkBool(options.reverse)
+        this._target = options.target
 
         if(typeof options.autostart === 'undefined') options.autostart = true;
 
         /** START TWEEN **/
-        if(checkBool(options.autostart)) this.playing = true
-        else this.playing = false
-        
+        if(__checkBool(options.autostart)) this.play()        
     }
 
-    checkNum = n => typeof n === 'number' ? n : 0
-    checkBool = b => typeof b === 'boolean' ? b : false
-    checkEase = s => typeof EasingFunctions[s] === 'function' ? EasingFunctions[s] : false
-    checkFunc = f => typeof f === 'function' ? f : _ => _
+    __checkObj = o => typeof o === 'object' ? o : {}
+    __checkNum = n => typeof n === 'number' ? n : 0
+    __checkBool = b => typeof b === 'boolean' ? b : false
+    __checkEase = s => typeof EasingFunctions[s] === 'function' ? EasingFunctions[s] : false
+    __checkFunc = f => typeof f === 'function' ? f : _ => _
 
-    get duration(){return this._duration};
+    /**
+     * Play tween from current state
+     */
+    play = () => {
+        const now = Date.now()
+        this._timestamp = now - this._elapsed
 
-    get from(){return this._from};
-    set from(val){
-        this._from = this.checkNum(val)
-        // this.restart()
+        this._playing = true
+        this._runAnimation()
     }
 
-    get to(){return this._to};
-    set to(val){
-        this._to = this.checkNum(val)
-        // this.restart()
+    /**
+     * Pause tween at current state
+     */
+    pause = () => this._playing = false
+
+    /**
+     * Stop and restart tween
+     */
+    stop = () => {
+        this._playing = false
+        this.seek(0);
     }
 
-    get timestamp(){return this._timestamp};
-    set timestamp(date){this._timestamp = date};
+    /**
+     * Seek to a state
+     * @param {Number} progress
+     */
+    seek = (progress) => {
+        const now = Date.now()
 
-    get elapsed(){return this._elapsed};
-    set elapsed(date){this._elapsed = date};
+        this._elapsed = this._duration * progress
+        this._timestamp = now - this._elapsed
 
-    get progress(){return this._progress};
-    set progress(val){this._progress = val};
+        this.t = this._duration > 0 ? this._elapsed / this._duration : 1
+        this._progress = this._ease(this.t)
 
-    setProgress(val){
-        this._progress = this.checkNum(val)
-    };
+        this._setValues()
+        this._onProgress(this._currentValues)
+    }
 
-    get currentValue(){return this._currentValue};
-    set currentValue(val){this._currentValue = this.checkNum(val)};
-
-    setCurrentValue(val){  
-        const now = Date.now() 
-            this.currentValue = this.checkNum(val)
-            this.timestamp = now - ( this._duration * (val / this._to) );
-            this.elapsed = ( this._duration * (val / this._to) );
-            this.progress = this._ease((now - this._timestamp) / (this._duration));
-
-        };
-
-        get playing(){return this._playing};
-        set playing(val){
-            this._playing = this.checkBool(val); 
-            if(val === true) {
-            // Continue playing where left off...
-            this.timestamp = Date.now() - this.elapsed;
-            this._runAnimation()
-            }
-        };
-
-        get reverse(){return this._reverse};
-        set reverse(val){this._reverse = this.checkBool(val)};
-
-        get onUpdate(){return this._onUpdate}
-        set onUpdate(func){this._onUpdate = this.checkFunc(func)}
-
-        get onComplete(){return this._onComplete;}
-        set onComplete(func){this._onComplete = this.checkFunc(func)}
-
-        restart = () => {
-            this.elapsed = 0;
-            if(this._reverse) this.progress = 100;
-            else this.progress = 0;
+    /**
+     * Destroy tween instance
+     */
+    destroy() {
+        for (const prop in this) {
+            delete this[prop];
         }
+    }
 
-        _runAnimation = () => {
-            if(this._playing){
-            const now = Date.now()
-            let tweenVal
-            this.t = this._duration > 0 ? (now - this._timestamp) / (this._duration) : 1
+    _setValues = () => {
+        Object.keys(this._from).map( key => {
+            let keyValue;
 
-            this.elapsed = now - this._timestamp
-            this.progress = this._ease(this.t);
+            if(this._reverse) keyValue = this._to[key] - (this._to[key] * this._progress) + (this._from[key] * this._progress);
+            else keyValue = this._from[key] - (this._from[key] * this._progress) + (this._to[key] * this._progress);
 
-            if(this._reverse) tweenVal = this._to - (this._to * this._progress) + (this._from * this._progress);
-            else tweenVal = this._from - (this._from * this._progress) + (this._to * this._progress);
+            this._currentValues[key] = keyValue
+            if(this._target) setNestedValue(this._target, key, keyValue)
+        })
+    }
 
-            this.currentValue = tweenVal
+    _restart = () => {
+        this._timestamp = Date.now()
+        this._elapsed = 0
+        this._progress = 0
+    }
 
-            // If completed
-            if (this.t >= 1) {
+    _runAnimation = () => {
+        if(!this._playing) return;
+        
+        const now = Date.now()
 
-                // Finished tween! Final update and call complete function.
-                this._onUpdate(this._currentValue)
-                if((this._yoyo && this._yoyoRun) || !this._yoyo ) this._onComplete()
+        this._elapsed = now - this._timestamp
+        this.t = (this._duration > 0 ? this._elapsed / this._duration : 1).toFixed(5)
+        this._progress = this._ease(this.t)
 
-                this.progress = 0;
-                this.elapsed = 0;
-                this.timestamp = Date.now();
+        if (this.t >= 1) this._progress = 1
+        else if(this.t <= 0) this._progress = 0
+
+        this._setValues()
+
+        // If completed
+        if (this.t >= 1) {
+
+            // Finished tween! Final update and call complete function.
+            this._onProgress(this._currentValues)
+            if((this._yoyo && this._yoyoRun) || !this._yoyo ) this._onComplete()
+            
+            // if looping is on, start from the beginning
+            if(this._loop){
+
+                this._restart()
                 
-                // if looping is on, start from the beginning
-                if(this._loop){
                 if(this._yoyo) {
-                    this.reverse = !this.reverse;
+                    this._reverse = !this._reverse;
                     if(this._yoyoRun) this._yoyoRun = false;
                     else this._yoyoRun = true;
                 }
-                requestAnimationFrame(this._runAnimation)
-                } 
-                else if(this._yoyo){
-                this.reverse = !this.reverse;
+                // requestAnimationFrame(this._runAnimation)
+                scheduleFunction.call(root, this._runAnimation, interval);
+
+            } 
+            else if(this._yoyo){
+
+                this._reverse = !this._reverse;
                 if(!this._yoyoRun) this.playing = true;
                 this._yoyoRun = true;
 
-                }
-
-            } else {
-                // Run update callback and loop until finished
-                this._onUpdate(this._currentValue)
-                requestAnimationFrame(this._runAnimation)
             }
 
-            }
+        } else {
+            // Run update callback and loop until finished
+            this._onProgress(this._currentValues)
+            // requestAnimationFrame(this._runAnimation)
+            scheduleFunction.call(root, this._runAnimation, interval);
         }
+
+        
+    }
 
 }
 
-window.TinyTween = TinyTween;
+root.TinyTween = TinyTween;
 export default TinyTween;

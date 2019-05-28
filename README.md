@@ -1,6 +1,9 @@
 # Tiny Tween JS
 
-Tiny Tween - A JS Component for tweening values easily
+Tiny Tween - A tiny (~5KB) JS Component for tweening values easily
+
+
+Try it on [Codepen](https://codepen.io/yotamtal/pen/eaLYXd)
 
 ![Tiny Tween Demo](tiny-tween-demo.gif)
 
@@ -28,7 +31,7 @@ Manually add as script
 
 And get the exposed class:
 ```js
-new Window.TinyTween
+new window.TinyTween
 ```
 
 ## Usage
@@ -36,8 +39,9 @@ new Window.TinyTween
 ```js
 
 const tweenOptions = { 
-    from: 0,
-    to: 100,
+    target: document.getElementById('example'), // Optional target for value changes
+    from: {'style.opacity': 0}, // FROM values to tween
+    to: {'style.opacity': 100}, // TO values to tween
     duration: 2000, // In Milliseconds
     loop: true,  // Loop tween
     yoyo: true, // Play forward and then reverse to inital value
@@ -53,11 +57,18 @@ let tween = new TinyTween(tweenOptions);
 
 // Vanilla Usage
 let tween = new window.TinyTween(tweenOptions);
+
+tween.play(); // Play tween from current state
+tween.pause(); // Pause tween at current state
+tween.stop(); // Stop playing and reset
+tween.seek(0.50); // Set progress of tween
+tween.destroy() // destroy instance to free memory
 ```
 
 ## TODO
 
-- [ ] Add seeking methods
+- [x] Add seek method
+- [ ] Chain tweens
 
 ## Credits
 
