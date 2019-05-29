@@ -1,4 +1,4 @@
-import TinyTween from './TinyTween';
+import TinyTween from '../src/TinyTween';
 
 let gE = function(id){return document.getElementById(id)}
 

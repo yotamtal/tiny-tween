@@ -8,7 +8,7 @@
   "license": "ISC",
   "scripts": {
     "clean": "rm -rf dist && rm -rf .cache",
-    "start": "parcel src/index.html",
+    "start": "parcel example/index.html",
     "build-prod": "yarn clean && parcel build --no-source-maps src/TinyTween.js -o dist/TinyTween.min.js"
   },
   "dependencies": {},
