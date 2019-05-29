@@ -8,8 +8,8 @@ let example = gE('example'),
 
 const tweenOptions = {
     target: range,
-    from: {value: 0},
-    to: {value: 100},
+    from: {value:0, 'style.opacity': 0},
+    to: {value:100, 'style.opacity': 1},
     duration: 5000, // In Milliseconds
     loop: true,  // In Loop tween
     yoyo: true, // Play forward and then reverse to inital value
@@ -22,28 +22,19 @@ const tweenOptions = {
         loops.innerText = parseInt(loops.innerText) + 1 || 1
     }
 };
-let tween = new TinyTween(tweenOptions);
 
-let play = gE('play'),
+let tween = new TinyTween(tweenOptions),
+    play = gE('play'),
     pause = gE('pause'),
     stop = gE('stop'),
     seek = gE('seek');
 
-let listener = function() {
-    window.requestAnimationFrame(function() {
-        tween.seek(seek.value)
-    });
-};
-    
-seek.addEventListener("mousedown", function() {
+let listener = () => window.requestAnimationFrame( () => tween.seek(seek.value) );
+seek.addEventListener("mousedown", () => {
     listener();
     seek.addEventListener("mousemove", listener);
 });
-seek.addEventListener("mouseup", function() {
-    seek.removeEventListener("mousemove", listener);
-});
-    
-
+seek.addEventListener("mouseup", () => seek.removeEventListener("mousemove", listener) );
 play.onclick = () => tween.play()
 pause.onclick = () => tween.pause()
 stop.onclick = () => tween.stop()

@@ -7,14 +7,14 @@
     <body>
         <div id="app" style="display: flex; flex-direction: column; justify-content: center; align-items: center">
             <input disabled id="example-range" type="range" min="0" max="100" value="0"/>
-            </br>
-            Value: <span id="example"></span>
-            </br>
-            Loops: <span id="loops">0</span>
-            </br>
-            <button id="play">Play</button><button id="pause">Pause</button><button id="stop">Stop</button>
-            </br>
-            Seek <input id="seek" type="range" step="0.01" min="0" max="1" value="0"/>
+            <div>Value: <span id="example"></span></div>
+            <div>Loops: <span id="loops">0</span></div>
+            <div>
+            <button id="play">Play</button>
+            <button id="pause">Pause</button>
+            <button id="stop">Stop</button>
+            </div>
+            <div>Seek <input id="seek" type="range" step="0.01" min="0" max="1" value="0"/></div>
         </div>
         <script src="index.js"></script>
     </body>
