@@ -1,9 +1,12 @@
 {
   "name": "tiny-tween-js",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "JS Component for tweening values easily",
   "main": "dist/TinyTween.min.js",
-  "keywords": ["tween","animation"],
+  "keywords": [
+    "tween",
+    "animation"
+  ],
   "author": "Yotam Tal",
   "license": "ISC",
   "scripts": {
@@ -20,11 +23,11 @@
     "parcel-bundler": "^1.12.3"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/yotamtal/tiny-tween.git"
+    "type": "git",
+    "url": "https://github.com/yotamtal/tiny-tween.git"
   },
   "bugs": {
     "url": "https://github.com/yotamtal/tiny-tween/issues"
   },
-  "homepage":"https://github.com/yotamtal/tiny-tween/"
+  "homepage": "https://github.com/yotamtal/tiny-tween/"
 }
